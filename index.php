@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Dec APB Payment Plugin
+ * Plugin Name: Dec APB Payment
  * Description: Плагин для оплаты через платежный шлюз Агропромбанка
  * Author: Jonathan Livingston. Telegram @akssenov
  * Version: 1.5
@@ -87,9 +87,9 @@ function dec_apb_payment_plugin_handle_payment_result()
             if ($order) {
                 if ($status === "paid") {
                     $order->payment_complete();
-                    $order->add_order_note("Оплачено через DEC Payment Plugin");
+                    $order->add_order_note("Оплачено через DEC APB Payment");
                 } else {
-                    $order->update_status("failed", "Неудачный платеж через DEC Payment Plugin");
+                    $order->update_status("failed", "Неудачный платеж через DEC APB Payment");
                 }
             }
         } else {
@@ -148,7 +148,8 @@ function dec_apb_payment_plugin_init()
         public function __construct()
         {
             $this->id = "dec_apb_payment_plugin";
-            $this->method_title = __("Dec Payment plugin", "dec_apb_payment_plugin");
+            $this->method_title = __("Dec APB Payment", "dec_apb_payment_plugin");
+            $this->method_description = __('Платежный шлюз Агропромбанка', 'dec_apb_payment_plugin');
             $this->has_fields = false;
 
             $this->init_form_fields();
@@ -201,7 +202,7 @@ function dec_apb_payment_plugin_init()
                         "Название, которое видит пользователь при выборе способа оплаты.",
                         "dec_apb_payment_plugin"
                     ),
-                    "default" => __("Dec Payment Plugin", "dec_apb_payment_plugin"),
+                    "default" => __("Dec APB Payment Plugin", "dec_apb_payment_plugin"),
                 ],
                 "description" => [
                     "title" => __("Описание", "dec_apb_payment_plugin"),

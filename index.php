@@ -244,7 +244,7 @@ function dec_apb_payment_plugin_init()
             $payData = [
                 "MerchantLogin" => $this->merchant_login,
                 "nivid" => $order_id,
-                "istest" => $this->test_mode === 'yes' ? '1' : '0', 
+                "istest" => $this->test_mode === 'yes' ? 1 : 0, 
                 "RequestSum" => $order->get_total() * 100, // Конвертируем в копейки
                 "RequestCurrCode" => "000",
                 "Desc" => "Покупка в интернет магазине",

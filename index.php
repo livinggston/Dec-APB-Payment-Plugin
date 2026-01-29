@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Dec APB Payment
  * Description: Плагин для оплаты через платежный шлюз Агропромбанка
@@ -6,12 +7,14 @@
  * Version: 1.5
  */
 
-if (!defined("ABSPATH")) {exit();}
+if (!defined("ABSPATH")) {
+    exit();
+}
 
 add_action("plugins_loaded", "dec_apb_payment_plugin_init", 0);
 add_action("init", "dec_apb_payment_plugin_register_endpoints");
-add_filter("query_vars", "dec_apb_payment_plugin_query_vars", 0);
-add_action("parse_request", "dec_apb_payment_plugin_parse_request", 0);
+add_filter("query_vars", "dec_apb_payment_plugin_query_vars");
+add_action("parse_request", "dec_apb_payment_plugin_parse_request");
 
 // Укажите ваши параметры ResultURL, SuccessURL и FailURL или оставьте без изменений.
 $resultURL = "payment/result";
@@ -22,14 +25,14 @@ $failURL = "payment/failure";
 function dec_apb_payment_plugin_register_endpoints()
 {
     global $resultURL, $successURL, $failURL;
-    
-    add_rewrite_endpoint($resultURL, EP_ROOT);
-    add_rewrite_endpoint($successURL, EP_ROOT);
-    add_rewrite_endpoint($failURL, EP_ROOT);
+
+    add_rewrite_endpoint($resultURL, EP_ALL);
+    add_rewrite_endpoint($successURL, EP_ALL);
+    add_rewrite_endpoint($failURL, EP_ALL);
 }
 
 // Обрабатываем запросы к конечным точкам
-function dec_apb_payment_plugin_parse_request(&$wp)
+function dec_apb_payment_plugin_parse_request($wp)
 {
     global $resultURL, $successURL, $failURL;
 
@@ -82,7 +85,7 @@ function dec_apb_payment_plugin_handle_payment_result()
     }
 
     if ($status === "paid" || $status === "fail") {
-        if ($signature === $expected_signature) {
+        if (hash_equals($expected_signature, $signature)) {
             $order = wc_get_order($invoice_id);
             if ($order) {
                 if ($status === "paid") {
@@ -96,7 +99,7 @@ function dec_apb_payment_plugin_handle_payment_result()
             error_log("Проверка подписи не пройдена.");
         }
     } else {
-        error_log( "Неизвестное значение статуса");
+        error_log("Неизвестное значение статуса");
     }
     status_header(200);
     exit();
@@ -132,7 +135,7 @@ function dec_apb_payment_plugin_handle_payment_success()
 function dec_apb_payment_plugin_handle_payment_fail()
 {
     // Укажите ваш адрес страницы неудачной оплаты
-    wp_redirect("/failed-pay'"); 
+    wp_redirect(esc_url_raw(home_url('/failed-pay')));
     exit();
 }
 
@@ -145,6 +148,9 @@ function dec_apb_payment_plugin_init()
 
     class WC_Dec_APB_Payment_Plugin extends WC_Payment_Gateway
     {
+        public $test_mode;
+        public $merchant_login;
+        public $merchant_pass;
         public function __construct()
         {
             $this->id = "dec_apb_payment_plugin";
@@ -166,7 +172,6 @@ function dec_apb_payment_plugin_init()
                 "woocommerce_update_options_payment_gateways_" . $this->id,
                 [$this, "process_admin_options"]
             );
-
         }
 
         public function is_available()
@@ -244,7 +249,7 @@ function dec_apb_payment_plugin_init()
             $payData = [
                 "MerchantLogin" => $this->merchant_login,
                 "nivid" => $order_id,
-                "istest" => $this->test_mode === 'yes' ? 1 : 0, 
+                "istest" => $this->test_mode === 'yes' ? 1 : 0,
                 "RequestSum" => $order->get_total() * 100, // Конвертируем в копейки
                 "RequestCurrCode" => "000",
                 "Desc" => "Покупка в интернет магазине",
